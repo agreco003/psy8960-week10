@@ -4,7 +4,7 @@ library(tidyverse)
 library(caret)
 
 #Data Import and Cleaning
-gss_data <- haven::read_sav("../data/GSS2016.sav") #read_sav function not found without library call, though haven is part of the tidyverse
+gss_data <- haven::read_sav("../data/GSS2016.sav") #read_sav function not found without library call, despite haven listed as part of the tidyverse at https://haven.tidyverse.org/index.html
 gss_tbl <- tibble(gss_data) %>%
   mutate(workhours = as.integer(HRS1)) %>% #enables logical comparison in the next line, no data loss
   filter(workhours != is.na(workhours)) %>% #2867 - (1198 NA + 23 don't know / missing) = 1646 cases as in documentation on page 123.
@@ -12,3 +12,5 @@ gss_tbl <- tibble(gss_data) %>%
 
 #Visualization
 histogram(gss_tbl$workhours)
+
+#Machine Learning
