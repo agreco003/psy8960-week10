@@ -89,16 +89,16 @@ R2_RF_holdout
 GB_model <- train(
   workhours ~ .,  #see above for notes of repeated columns
   data = train_tbl, #see above for notes of repeated columns
-  method = "xgbLinear", #1 of 3 extreme Gradient Boosting models. Less hyperparamters than xgbDART or xgbTree, and therefore is expected to run faster, given the tuneLength argument below. xgbDART and xgbTree issue warnings (not errors) of a using a deprecated hyperparameter `ntree_limit` 
+  method = "xgbLinear", #1 of 3 extreme Gradient Boosting models. Less hyperparamters than xgbDART or xgbTree, and therefore is expected to run faster, given the tuneLength argument below. xgbDART and xgbTree (alternates to Random Forests, I believe) issue warnings (not errors) of a using a deprecated hyperparameter `ntree_limit` 
   tuneLength = 3, #3 selected as a balance of granular hyperparameter values and speed. 2 would be faster, 5 would be slower. 10 took a very, very long time (due to number of parameters).
   na.action = "na.pass",
   preProcess = "medianImpute",
   trControl =  trainControl(
-    method = "cv", #could also set to "adaptive_cv" to increase speed and efficiency, but not selected as the project did not call for this specifically
+    method = "cv", #could also set to "adaptive_cv" to increase speed and efficiency for all models, but not selected as the project did not call for this specifically
     indexOut = fold_indices,
     verboseIter = TRUE
   )
-) #hyperparameters = max_depth=1, eta=0.3, rate_drop=0.01, skip_drop=0.05, min_child_weight=1, subsample=0.500, colsample_bytree=0.6, gamma=0, nrounds=250 
+)
 GB_model
 GB_Predict <- predict(GB_model, holdout_tbl, na.action=na.pass)
 R2_GB_holdout <- cor(holdout_tbl$workhours, GB_Predict)^2
