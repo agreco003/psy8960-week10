@@ -118,7 +118,6 @@ table1_tbl <- tibble(algo = results$models, cv_rsq, ho_rsq) %>%
          ho_rsq = str_remove(format(round(ho_rsq, 2), nsmall = 2), "^0"))
 table1_tbl
 
-# Questions
 ## 1. How did your results change between models? Why do you think this happened, specifically?
 ## Results were different between these models as a result of the underlying assumptions made by each model, including the subsequent values for the hyperparameters used in each model. For example, some of these models, like the linear model and elastic net, assume workhours shares a linear relationship with the predictor variables, and apply varying degrees of penalties for model complexity. On the other hand, the random forest model makes no such assumptions about linearity. 
 
