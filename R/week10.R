@@ -123,7 +123,7 @@ GB_model
 ## Results were different between these models as a result of the underlying assumptions made by each model, including the subsequent values for the hyperparameters used in each model. For example, some of these models, like the linear model and elastic net, assume workhours shares a linear relationship with the predictor variables, and apply varying degrees of penalties for model complexity. On the other hand, the random forest model makes no such assumptions about linearity. 
 
 ## 2. How did you results change between k-fold CV and holdout CV? Why do you think this happened, specifically?
-# Model fit reduced pretty dramatically from the k-fold CV to the holdout CV. This suggests that all of our models are overfitting to the training subset of our data, despite our 10-fold model estimation process. 
+# Model fit reduced pretty dramatically from the k-fold CV to the holdout CV. This suggests that all of our models are overfitting to some extent, using the training subset of our data, despite our 10-fold model parameter estimation process. 
 
 ## 3. Among the four models, which would you choose for a real-life prediction problem, and why? Are there tradeoffs? Write up to a paragraph.
 
