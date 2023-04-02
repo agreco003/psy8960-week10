@@ -89,7 +89,7 @@ R2_RF_holdout
 GB_model <- train(
   workhours ~ .,  #see above for notes of repeated columns
   data = train_tbl, #see above for notes of repeated columns
-  method = "xgbLinear", #1 of 3 extreme Gradient Boosting models. Less hyperparamters than xgbDART or xgbTree, and therefore is expected to run faster, given the tuneLength argument below. xgbDART and xgbTree (alternates to Random Forests, I believe) issue warnings (not errors) of a using a deprecated hyperparameter `ntree_limit` 
+  method = "xgbLinear", #1 of 3 extreme Gradient Boosting models. Less hyperparamters than xgbDART or xgbTree, and therefore is expected to run faster, given the tuneLength argument below. xgbDART and xgbTree (similar to Random Forest models) issue warnings (not errors) of using a deprecated hyperparameter `ntree_limit`. 
   tuneLength = 3, #3 selected as a balance of granular hyperparameter values and speed. 2 would be faster, 5 would be slower. 10 took a very, very long time (due to number of parameters).
   na.action = "na.pass",
   preProcess = "medianImpute",
