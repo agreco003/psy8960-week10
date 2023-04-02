@@ -107,7 +107,7 @@ R2_GB_holdout
 # Publication
 model_list <- list(Linear = Linear_model, ElasticNet = EN_model, RandomForest = RF_model, GradientBoosting = GB_model)
 results <- summary(resamples(model_list), metric="Rsquared")
-dotplot(resamples(model_list), metric="Rsquared")
+dotplot(resamples(model_list), metric="Rsquared", main = "10-Fold CV Rsquared")
 results
 
 ## Create tibble
