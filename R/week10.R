@@ -116,7 +116,7 @@ ho_rsq <- c(R2_Linear_holdout, R2_EN_holdout, R2_RF_holdout, R2_GB_holdout)
 table1_tbl <- tibble(algo = results$models, cv_rsq, ho_rsq) %>%
   mutate(cv_rsq = str_remove(format(round(cv_rsq, 2), nsmall = 2), "^0"),
          ho_rsq = str_remove(format(round(ho_rsq, 2), nsmall = 2), "^0"))
-GB_model
+table1_tbl
 
 # Questions
 ## 1. How did your results change between models? Why do you think this happened, specifically?
