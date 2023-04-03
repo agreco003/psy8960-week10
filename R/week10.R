@@ -5,13 +5,13 @@ library(caret)
 library(haven)
 
 # Data Import and Cleaning
-gss_data <- read_spss("../data/GSS2016.sav") #read_sav function not found without library call, despite haven listed as part of the tidyverse at https://haven.tidyverse.org/index.html
+gss_data <- read_spss("../data/GSS2016.sav") #read_sav function not found without library call, despite haven listed as part of the tidyverse at https://haven.tidyverse.org/index.html. Reads into a tibble,
 gss_tbl <- tibble(gss_data) %>%
   ##remove all SPSS attributes
   zap_missing() %>% #removes all unique characters for SPSS missing data. In haven package
   labelled::remove_labels() %>% #removes labels of SPSS data
-  labelled::remove_attributes("display_width") %>% #removes display settings for SPSS data
-  rename(workhours = HRS1) %>%
+  labelled::remove_attributes("display_width") %>% #removes display settings for SPSS data. could also just shove the predictor into mutate(workhours = as.numeric(workhours))
+  rename(workhours = HRS1) %>% #could also use variable mosthrs
   drop_na(workhours) #1646 cases matches documentation on page 123.
 gss_tbl <- select(gss_tbl, which(colMeans(is.na(gss_tbl)) <= 0.25)) #selecting all columns WHICH have 25% or less missing data. colMeans() used to generate a proportion of NA per column. 
 #colMeans(is.na(gss_tbl)) #quick check that displays all included variables with % missingness, all less than .25
@@ -22,7 +22,7 @@ histogram(gss_tbl$workhours)
 # Machine Learning Models
 set.seed(25)
 ##split dataset: 75% Train 25% for Test, even distribution of 
-index <- createDataPartition(gss_tbl$workhours, p = 0.75, list = FALSE)
+index <- createDataPartition(gss_tbl$workhours, p = 0.75, list = FALSE) #could also use index <- sample(1:nrow(gss_tbl), .75*nrow(gss_tbl))
 train_tbl <- gss_tbl[index, ]
 holdout_tbl <- gss_tbl[-index, ]
 fold_indices = createFolds(train_tbl$workhours, k = 10) #creates the same 10 folds for every model to train with, allowing fair model comparison
@@ -126,4 +126,4 @@ table1_tbl
 
 ## 3. Among the four models, which would you choose for a real-life prediction problem, and why? Are there tradeoffs? Write up to a paragraph.
 
-## In a real-life prediction problem, model selection would depend on the situation! Before picking a model, we should consider the research question to answer, the underlying data quantity and complexity, any assumptions made about the relationships of interest, how urgently we need an answer, permitted computational expense, and the extent to which we would need to explain the model to others (as a "black box" solution is not always appropriate). These are some of the tradeoffs we have to make when selecting and deploying a particular model. If I had to make a choice from these 4 models without additional context, I would select the Random Forest model, as it is a flexible model that balances run time, computational expense, and prediction accuracy for a wide variety of research questions.
+## In a real-life prediction problem, model selection would depend on the situation! Before picking a model, we should consider the research question to answer, the underlying data quantity and complexity, any assumptions made about the relationships of interest, how urgently we need an answer, permitted computational expense, and the extent to which we would need to be transparent or explain the model to others (as a "black box" solution is not always appropriate). These are some of the tradeoffs we have to make when selecting and deploying a particular model. If I had to make a choice from these 4 models without additional context, I would select the Random Forest model, as it is a flexible model that balances run time, computational expense, and prediction accuracy for a wide variety of research questions.
