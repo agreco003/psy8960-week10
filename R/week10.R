@@ -6,14 +6,14 @@ library(haven)
 
 # Data Import and Cleaning
 gss_data <- read_spss("../data/GSS2016.sav") #read_sav function not found without library call, despite haven listed as part of the tidyverse at https://haven.tidyverse.org/index.html. Reads into a tibble,
-gss_tbl <- tibble(gss_data) %>%
+gss_tbl <- #tibble(gss_data) %>% Second tibble not necessary given the read_spss function from haven. 
   ##remove all SPSS attributes
   zap_missing() %>% #removes all unique characters for SPSS missing data. In haven package
   labelled::remove_labels() %>% #removes labels of SPSS data
   labelled::remove_attributes("display_width") %>% #removes display settings for SPSS data. could also just shove the predictor into mutate(workhours = as.numeric(workhours))
   rename(workhours = HRS1) %>% #could also use variable mosthrs
   drop_na(workhours) #1646 cases matches documentation on page 123.
-gss_tbl <- select(gss_tbl, which(colMeans(is.na(gss_tbl)) <= 0.25)) #selecting all columns WHICH have 25% or less missing data. colMeans() used to generate a proportion of NA per column. 
+gss_tbl <- select(gss_tbl, which(colMeans(is.na(gss_tbl)) = 0.25)) #selecting all columns WHICH have 25% or less missing data. colMeans() used to generate a proportion of NA per column. 
 #colMeans(is.na(gss_tbl)) #quick check that displays all included variables with % missingness, all less than .25
 
 #Visualization
@@ -21,7 +21,7 @@ histogram(gss_tbl$workhours)
 
 # Machine Learning Models
 set.seed(25)
-##split dataset: 75% Train 25% for Test, even distribution of 
+##split dataset: 75% Train 25% for Test, even distribution of prediction criterion
 index <- createDataPartition(gss_tbl$workhours, p = 0.75, list = FALSE) #could also use index <- sample(1:nrow(gss_tbl), .75*nrow(gss_tbl))
 train_tbl <- gss_tbl[index, ]
 holdout_tbl <- gss_tbl[-index, ]
@@ -36,7 +36,7 @@ Linear_model <- train(
   na.action = "na.pass", #ensures function does not fail when missing data is encountered. 
   preProcess = "medianImpute", #medianImpute required by project
   trControl = trainControl(
-    method = "cv", 
+    method = "cv", #cross-validation training method
     indexOut = fold_indices, #set to 10 folds above, same folds across models
     verboseIter = TRUE
   )
@@ -55,7 +55,7 @@ EN_model <- train(
   na.action = "na.pass", 
   preProcess = "medianImpute",
   trControl =  trainControl(
-    method = "cv", 
+    method = "cv",
     indexOut = fold_indices,
     verboseIter = TRUE
   )
