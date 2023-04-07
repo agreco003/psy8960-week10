@@ -8,16 +8,17 @@ library(haven)
 gss_data <- read_spss("../data/GSS2016.sav") #read_sav function not found without library call, despite haven listed as part of the tidyverse at https://haven.tidyverse.org/index.html. Reads into a tibble,
 gss_tbl <- #tibble(gss_data) %>% Second tibble not necessary given the read_spss function from haven. 
   ##remove all SPSS attributes
-  zap_missing() %>% #removes all unique characters for SPSS missing data. In haven package
-  labelled::remove_labels() %>% #removes labels of SPSS data
-  labelled::remove_attributes("display_width") %>% #removes display settings for SPSS data. could also just shove the predictor into mutate(workhours = as.numeric(workhours))
+  zap_missing(gss_data) %>% #removes all unique characters for SPSS missing data. In haven package
+  #labelled::remove_labels() %>% #removes labels of SPSS data
+  #labelled::remove_attributes("display_width") %>% #removes display settings for SPSS data. could also just shove the predictor into mutate(workhours = as.numeric(workhours))
   rename(workhours = HRS1) %>% #could also use variable mosthrs
-  drop_na(workhours) #1646 cases matches documentation on page 123.
-gss_tbl <- select(gss_tbl, which(colMeans(is.na(gss_tbl)) = 0.25)) #selecting all columns WHICH have 25% or less missing data. colMeans() used to generate a proportion of NA per column. 
+  drop_na(workhours) %>% #1646 cases matches documentation on page 123.
+  select(workhours, which(colMeans(is.na(gss_data)) <= 0.25)) %>%
+  mutate(workhours = as.numeric(workhours))#selecting all columns WHICH have 25% or less missing data. colMeans() used to generate a proportion of NA per column. 
 #colMeans(is.na(gss_tbl)) #quick check that displays all included variables with % missingness, all less than .25
 
 #Visualization
-histogram(gss_tbl$workhours)
+histogram(gss_tbl$workhours, main = "Distribution of workhours")
 
 # Machine Learning Models
 set.seed(25)
@@ -26,10 +27,10 @@ index <- createDataPartition(gss_tbl$workhours, p = 0.75, list = FALSE) #could a
 train_tbl <- gss_tbl[index, ]
 holdout_tbl <- gss_tbl[-index, ]
 fold_indices = createFolds(train_tbl$workhours, k = 10) #creates the same 10 folds for every model to train with, allowing fair model comparison
-expanded_grid <- expand.grid(alpha = c(0,0.5, 1), lambda = seq(0.0001, 0.1, length = 10)) #alpha set to try a pure ridge regression model, a balanced mixed model, and a pure lasso regression model
+#expanded_grid <- expand.grid(alpha = c(0,0.5, 1), lambda = seq(0.0001, 0.1, length = 10)) #alpha set to try a pure ridge regression model, a balanced mixed model, and a pure lasso regression model
 
 ## OLS Regression Model
-Linear_model <- train(
+linear_model <- train(
   workhours ~ .,  #model you want to predict
   data = train_tbl, #Training Dataset
   method = "lm", #OLS Regression
@@ -41,17 +42,17 @@ Linear_model <- train(
     verboseIter = TRUE
   )
 )
-Linear_model
-Linear_Predict <- predict(Linear_model, holdout_tbl, na.action=na.pass)
-R2_Linear_holdout <- cor(holdout_tbl$workhours, Linear_Predict)^2
-R2_Linear_holdout
+linear_model
+linear_predict <- predict(linear_model, holdout_tbl, na.action=na.pass)
+r2_linear_holdout <- cor(holdout_tbl$workhours, linear_predict)^2
+r2_linear_holdout
 
 ## Elastic Net Model
-EN_model <- train(
+en_model <- train(
   workhours ~ .,  #see above for notes of repeated columns
   data = train_tbl, 
   method = "glmnet", # runs Elastic Net model
-  tuneGrid = expanded_grid, #expands both hyperparameters for this model, as designated above
+  tuneLength = 4, #expands both hyperparameters for this model, as designated above. Can also use tuneGrid = expanded_grid from above
   na.action = "na.pass", 
   preProcess = "medianImpute",
   trControl =  trainControl(
@@ -60,13 +61,13 @@ EN_model <- train(
     verboseIter = TRUE
   )
 )
-EN_model
-EN_Predict <- predict(EN_model, holdout_tbl, na.action=na.pass)
-R2_EN_holdout <- cor(holdout_tbl$workhours, EN_Predict)^2
-R2_EN_holdout
+en_model
+en_predict <- predict(en_model, holdout_tbl, na.action=na.pass)
+r2_en_holdout <- cor(holdout_tbl$workhours, en_predict)^2
+r2_en_holdout
 
 ## Random Forest Model
-RF_model <- train(
+rf_model <- train(
   workhours ~ ., #see above for notes of repeated columns
   data = train_tbl, 
   tuneLength = 10, #minimnum number of values per hyperparameter run. 3 hyperparameters total
@@ -80,13 +81,13 @@ RF_model <- train(
   )
 )
 
-RF_model
-RF_predict <- predict(RF_model, holdout_tbl, na.action=na.pass)
-R2_RF_holdout <- cor(holdout_tbl$workhours, RF_predict)^2
-R2_RF_holdout
+rf_model
+rf_predict <- predict(rf_model, holdout_tbl, na.action=na.pass)
+r2_rf_holdout <- cor(holdout_tbl$workhours, rf_predict)^2
+r2_rf_holdout
 
 ## eXtreme Gradient Boosting Model
-GB_model <- train(
+gb_model <- train(
   workhours ~ .,  #see above for notes of repeated columns
   data = train_tbl, #see above for notes of repeated columns
   method = "xgbLinear", #1 of 3 extreme Gradient Boosting models. Less hyperparamters than xgbDART or xgbTree, and therefore is expected to run faster, given the tuneLength argument below. xgbDART and xgbTree (similar to Random Forest models) issue warnings (not errors) of using a deprecated hyperparameter `ntree_limit`. 
@@ -99,20 +100,20 @@ GB_model <- train(
     verboseIter = TRUE
   )
 )
-GB_model
-GB_Predict <- predict(GB_model, holdout_tbl, na.action=na.pass)
-R2_GB_holdout <- cor(holdout_tbl$workhours, GB_Predict)^2
-R2_GB_holdout
+gb_model
+gb_predict <- predict(gb_model, holdout_tbl, na.action=na.pass)
+r2_gb_holdout <- cor(holdout_tbl$workhours, gb_predict)^2
+r2_gb_holdout
 
 # Publication
-model_list <- list(Linear = Linear_model, ElasticNet = EN_model, RandomForest = RF_model, GradientBoosting = GB_model)
+model_list <- list(Linear = linear_model, ElasticNet = en_model, RandomForest = rf_model, GradientBoosting = gb_model)
 results <- summary(resamples(model_list), metric="Rsquared")
 dotplot(resamples(model_list), metric="Rsquared", main = "10-Fold CV Rsquared")
 results
 
 ## Create tibble
 cv_rsq <- results$statistics$Rsquared[,"Mean"] #mean values used because they correspond with each selected model, which minimizes RMSEA, as described by the each model output
-ho_rsq <- c(R2_Linear_holdout, R2_EN_holdout, R2_RF_holdout, R2_GB_holdout)
+ho_rsq <- c(r2_linear_holdout, r2_en_holdout, r2_rf_holdout, r2_gb_holdout)
 table1_tbl <- tibble(algo = results$models, cv_rsq, ho_rsq) %>%
   mutate(cv_rsq = str_remove(format(round(cv_rsq, 2), nsmall = 2), "^0"),
          ho_rsq = str_remove(format(round(ho_rsq, 2), nsmall = 2), "^0"))
