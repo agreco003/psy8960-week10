@@ -52,7 +52,7 @@ en_model <- train(
   workhours ~ .,  #see above for notes of repeated columns
   data = train_tbl, 
   method = "glmnet", # runs Elastic Net model
-  tuneLength = 4, #expands both hyperparameters for this model, as designated above. Can also use tuneGrid = expanded_grid from above
+  tuneLength = 3, #expands both hyperparameters for this model, as designated above. Can also use tuneGrid = expanded_grid from above
   na.action = "na.pass", 
   preProcess = "medianImpute",
   trControl =  trainControl(
@@ -70,7 +70,7 @@ r2_en_holdout
 rf_model <- train(
   workhours ~ ., #see above for notes of repeated columns
   data = train_tbl, 
-  tuneLength = 10, #minimnum number of values per hyperparameter run. 3 hyperparameters total
+  tuneLength = 5, #minimnum number of values per hyperparameter run. 3 hyperparameters total
   na.action = "na.pass", 
   preProcess = "medianImpute", 
   method = "ranger", #runs random forest model
